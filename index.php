@@ -21,13 +21,13 @@
 
 	$symbol = 'FLGEX';
 	$todays_date = new DateTime('NOW');
-	$start_date_orig = new DateTime('2015-01-11');
+	$start_date_orig = new DateTime('2015-01-14');
 	$start_date = $start_date_orig;
 	$end_date = new DateTime('NOW');
 
 
 
-print 'range: ' . $start_date->format('m-d-Y') . ' to ' . $end_date->format('m-d-Y');
+/*print 'range: ' . $start_date->format('m-d-Y') . ' to ' . $end_date->format('m-d-Y');
 print '<br>';
 
 $number_of_months = diffInMonths($start_date, $end_date) + 1;
@@ -36,13 +36,16 @@ print 'months in range:';
 print_r($number_of_months);
 print '<br>';
 
+$trans_date = [];
+
 for ($x = 1; $x <= $number_of_months; $x++) 
 {
     echo "The number is: $x <br>";
+	$trans_date[] ;
 } 
 
 exit;
-
+*/
 
 	//$data = $client->getHistoricalData($symbol, $start_date, $end_date);
 
@@ -52,12 +55,12 @@ exit;
 
 	$interval = new DateInterval('P1M');
 
-    $trans_date[] = $start_date->format('Y-m-d');
-
-	if($start_date->format('d') > 15)
+	if($start_date->format('d') < 15)
 	{
-	    $start_date = $start_date->modify('next month');
-	    $start_date = $start_date->setDate($start_date->format('Y'), $start_date->format('m'), 1);
+	    $trans_date[] = $start_date->format('Y-m-d');
+
+	    //$start_date = $start_date->modify('next month');
+	    //$start_date = $start_date->setDate($start_date->format('Y'), $start_date->format('m'), 1);
 	}
 
 	$daterange = new DatePeriod($start_date, $interval ,$end_date);
@@ -75,6 +78,7 @@ exit;
 		//}
 		//else
 		//{
+
 			$date->setDate($date->format('Y'), $date->format('m'), 1);
 		    
 		    if($date > $start_date_orig)
