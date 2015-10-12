@@ -1,0 +1,9 @@
+{
+    "name": "fund-calc",
+    "description": "Fund Calculator",
+    "type": "project",
+    "minimum-stability": "stable",
+    "require": {
+        "scheb/yahoo-finance-api": "dev-master"
+    }
+}
