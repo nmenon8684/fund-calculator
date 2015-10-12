@@ -1,103 +1,83 @@
 <?php 
 	require __DIR__ . '/vendor/autoload.php';
 
+	function ifMarketClosed($date)
+	{
+		if((date('N', strtotime($date->format('Y-m-d'))) >= 6))
+		{
+			$date->modify('next monday');
+		}
+
+		return $date->format('Y-m-d');
+	}
+
 	$client = new \Scheb\YahooFinanceApi\ApiClient();
 
-	/**
-	 * Calculate the difference in months between two dates (v1 / 18.11.2013)
-	 *
-	 * @param \DateTime $date1
-	 * @param \DateTime $date2
-	 * @return int
-	 */
-	function diffInMonths(\DateTime $date1, \DateTime $date2)
-	{
-	    $diff =  $date1->diff($date2);
-
-	    $months = $diff->y * 12 + $diff->m + $diff->d / 30;
-
-	    return (int) round($months);
-	}
-
 	$symbol = 'FLGEX';
-	$todays_date = new DateTime('NOW');
-	$start_date_orig = new DateTime('2015-01-14');
-	$start_date = $start_date_orig;
+	$start_date = new DateTime('2015-01-10');
 	$end_date = new DateTime('NOW');
 
+	$data = $client->getHistoricalData($symbol, $start_date, $end_date);
 
-
-/*print 'range: ' . $start_date->format('m-d-Y') . ' to ' . $end_date->format('m-d-Y');
-print '<br>';
-
-$number_of_months = diffInMonths($start_date, $end_date) + 1;
-
-print 'months in range:';
-print_r($number_of_months);
-print '<br>';
-
-$trans_date = [];
-
-for ($x = 1; $x <= $number_of_months; $x++) 
-{
-    echo "The number is: $x <br>";
-	$trans_date[] ;
-} 
-
-exit;
-*/
-
-	//$data = $client->getHistoricalData($symbol, $start_date, $end_date);
-
-	//print '<pre>';
+	print '<pre>';
 	//print_r($data);
-	//print '</pre>';
+	print '</pre>';
 
-	$interval = new DateInterval('P1M');
+	$interval = DateInterval::createFromDateString('first day of next month');
+	$period = new DatePeriod($start_date, $interval, $end_date, DatePeriod::EXCLUDE_START_DATE);
 
-	if($start_date->format('d') < 15)
+	$trans_date[] = ifMarketClosed($start_date);
+
+	$start_date_day = $start_date->format('d');	
+
+	if($start_date_day < 15)
 	{
-	    $trans_date[] = $start_date->format('Y-m-d');
+		$days_till_fifteenth =  15 - $start_date_day;
 
-	    //$start_date = $start_date->modify('next month');
-	    //$start_date = $start_date->setDate($start_date->format('Y'), $start_date->format('m'), 1);
+		$fifteenth_day = $start_date->add(new DateInterval('P' . $days_till_fifteenth . 'D'));
+
+		$trans_date[] = ifMarketClosed($fifteenth_day);
 	}
 
-	$daterange = new DatePeriod($start_date, $interval ,$end_date);
-
-	foreach($daterange as $indx => $date)
+	foreach($period as $date)
 	{
-		print '<pre>';
-		print_r($start_date);
-		print_r($date);
-		print '</pre>';
+		$trans_date[] = ifMarketClosed($date);
 
-		//if($date > $start_date_orig)
-		//{
-		 //   $trans_date[] = $date->setDate($date->format('Y'), $date->format('m'), 15)->format('Y-m-d');
-		//}
-		//else
-		//{
+		$date->add(new DateInterval('P14D'));
 
-			$date->setDate($date->format('Y'), $date->format('m'), 1);
-		    
-		    if($date > $start_date_orig)
-		    {
-			    $trans_date[] = $date->format('Y-m-d');
-		    }
-
-		    $fifteenth_of_month = $date->add(new DateInterval('P14D'));
-
-		    if($fifteenth_of_month < $todays_date)
-		    {
-			    $trans_date[] = $fifteenth_of_month->format("Y-m-d");
-		    }
-		//}
+		$trans_date[] = ifMarketClosed($date);
 	}
 
 	print '<pre>';
 	print_r($trans_date);
 	print '</pre>';
+
+
+	$funds = [];
+
+	if(!empty($data['query']['results']['quote']))
+	{
+		foreach($data['query']['results']['quote'] as $quote)
+		{
+			//print '<pre>';
+			//print_r($quote);
+			//print '</pre>';
+			//exit;
+			if(in_array($quote['Date'], $trans_date))
+			{
+				$funds[$symbol][] = [
+					'date' => $quote['Date'],
+					'price' => $quote['Close'], 
+				];
+			}
+		}
+	}
+
+
+	print '<pre>';
+	print_r($funds);
+	print '</pre>';
+
 
 ?>
 
