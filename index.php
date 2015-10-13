@@ -1,9 +1,11 @@
 <?php 
 	require __DIR__ . '/vendor/autoload.php';
 
-$independence_day = date('Y-m-d', strtotime("july 4 2015"));
+//$independence_day = new DateTime('2015-07-04');
 
-echo $independence_day->modify('last friday');
+//print_r($independence_day->modify('last friday'));
+
+	//echo date('Y-m-d', strtotime("last Thursday of November 2014"));
 
 //exit;
 
@@ -11,62 +13,66 @@ echo $independence_day->modify('last friday');
     {
     	if((date('N', strtotime($date->format('Y-m-d'))) >= 6))
 		{
-			$date->modify('next monday');
+			return true;
 		}
 
-		return $date;
+		return false;
     }
 
+    function adjust_fixed_holiday($date, $modify_date = 'next monday')
+    {
+    	$holiday = new DateTime($date);
 
-	function if_market_closed($date)
+		return (is_weekend($holiday) ? $holiday->modify($modify_date)->format('Y-m-d') : $holiday->format('Y-m-d'));
+    }
+
+	function is_market_closed($date)
 	{
 		$year = $date->format('Y');
 
+		// federal holidays
+		$federal_holidays = [
+			adjust_fixed_holiday($year . '-01-01'), // new years day
+			date('Y-m-d', strtotime("third Monday of January $year")), // martin luther kings day
+			date('Y-m-d', strtotime("third Monday of February $year")), // presidents day
+			date("Y-m-d", strtotime( "+".(easter_days($year) - 2)." days", strtotime("$year-03-21 12:00:00"))), // good friday
+			date('Y-m-d', strtotime("last Monday of May $year")), // memorial day
+			adjust_fixed_holiday($year . '-07-04', 'last friday'), // independence day
+			date('Y-m-d', strtotime("first Monday of September $year")), // labor day
+			date('Y-m-d', strtotime("last Thursday of November $year")), // thanksgiving
+			adjust_fixed_holiday($year . '-12-25'), // christmas
+		];
+
+
+		if(in_array($date->format('Y-m-d'), $federal_holidays))
+		{
+			$date->modify('next day');
+		}
+
+		/*
 		// new years day
-		if($date->format('m-d') == '01-01')
-		{
-			$date->modify('next day');
-		}
+		$new_years_day = new DateTime($year . '-01-01');
 
-		// martin luther kings day
-		if($date->format('Y-m-d') == date('Y-m-d', strtotime("january $year third monday")))
-		{
-			$date->modify('next day');
-		}
-
-		// presidents day
-		if($date->format('Y-m-d') == date('Y-m-d', strtotime("february $year third monday")))
-		{
-			$date->modify('next day');
-		}
-
-		// good friday
-		if($date->format('Y-m-d') == date("Y-m-d", strtotime( "+".(easter_days($year) - 2)." days", strtotime("$year-03-21 12:00:00"))))
-		{
-			$date->modify('next day');
-		}
-
-		// memorial day
-		if($date->format('Y-m-d') == date('Y-m-d', strtotime("last Monday of May $year")))
+		if($date->format('Y-m-d') == (is_weekend($new_years_day) ? $new_years_day->modify('next monday')->format('Y-m-d') : $new_years_day->format('Y-m-d')))
 		{
 			$date->modify('next day');
 		}
 
 		// independence day
-		$independence_day = date('Y-m-d', strtotime("july 4 $year"));
+		$independence_day = new DateTime($year . '-07-04');
 
-		//if($date->format('Y-m-d') == ( is_weekend($independence_day) ? $independence_day) )
-		//{
-			//print 'sup';
-			//exit;
-			//$date->modify('next day');
-		//}
-
-		// labor day
-
-		// thanksgiving
+		if($date->format('Y-m-d') == (is_weekend($independence_day) ? $independence_day->modify('last friday')->format('Y-m-d') : $independence_day->format('Y-m-d')))
+		{
+			$date->modify('next day');
+		}
 
 		// christmas
+		$christmas_day = new DateTime($year . '-12-25');
+
+		if($date->format('Y-m-d') == (is_weekend($christmas_day) ? $christmas_day->modify('next monday')->format('Y-m-d') : $christmas_day->format('Y-m-d')))
+		{
+			$date->modify('next day');
+		}*/
 
 		// saturday or sunday
 		if(is_weekend($date))
@@ -80,7 +86,7 @@ echo $independence_day->modify('last friday');
 	$client = new \Scheb\YahooFinanceApi\ApiClient();
 
 	$symbol = 'FLGEX';
-	$start_date = new DateTime('2015-07-03');
+	$start_date = new DateTime('2015-01-01');
 	$end_date = new DateTime('NOW');
 
 	$data = $client->getHistoricalData($symbol, $start_date, $end_date);
@@ -92,7 +98,7 @@ echo $independence_day->modify('last friday');
 	$interval = DateInterval::createFromDateString('first day of next month');
 	$period = new DatePeriod($start_date, $interval, $end_date, DatePeriod::EXCLUDE_START_DATE);
 
-	$trans_date[] = if_market_closed($start_date);
+	$trans_date[] = is_market_closed($start_date);
 
 	$start_date_day = $start_date->format('d');	
 
@@ -102,16 +108,17 @@ echo $independence_day->modify('last friday');
 
 		$fifteenth_day = $start_date->add(new DateInterval('P' . $days_till_fifteenth . 'D'));
 
-		$trans_date[] = if_market_closed($fifteenth_day);
+		$trans_date[] = is_market_closed($fifteenth_day);
 	}
 
 	foreach($period as $date)
 	{
-		$trans_date[] = if_market_closed($date);
+		$trans_date[] = is_market_closed($date);
 
 		$date->add(new DateInterval('P14D'));
+		//$date->setDate($date->format('Y'), $date->format('m'), 15);
 
-		$trans_date[] = if_market_closed($date);
+		$trans_date[] = is_market_closed($date);
 	}
 
 	print '<pre>';
