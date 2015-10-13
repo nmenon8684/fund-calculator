@@ -1,14 +1,6 @@
 <?php 
 	require __DIR__ . '/vendor/autoload.php';
 
-//$independence_day = new DateTime('2015-07-04');
-
-//print_r($independence_day->modify('last friday'));
-
-	//echo date('Y-m-d', strtotime("last Thursday of November 2014"));
-
-//exit;
-
 	function is_weekend($date)
     {
     	if((date('N', strtotime($date->format('Y-m-d'))) >= 6))
@@ -48,31 +40,6 @@
 		{
 			$date->modify('next day');
 		}
-
-		/*
-		// new years day
-		$new_years_day = new DateTime($year . '-01-01');
-
-		if($date->format('Y-m-d') == (is_weekend($new_years_day) ? $new_years_day->modify('next monday')->format('Y-m-d') : $new_years_day->format('Y-m-d')))
-		{
-			$date->modify('next day');
-		}
-
-		// independence day
-		$independence_day = new DateTime($year . '-07-04');
-
-		if($date->format('Y-m-d') == (is_weekend($independence_day) ? $independence_day->modify('last friday')->format('Y-m-d') : $independence_day->format('Y-m-d')))
-		{
-			$date->modify('next day');
-		}
-
-		// christmas
-		$christmas_day = new DateTime($year . '-12-25');
-
-		if($date->format('Y-m-d') == (is_weekend($christmas_day) ? $christmas_day->modify('next monday')->format('Y-m-d') : $christmas_day->format('Y-m-d')))
-		{
-			$date->modify('next day');
-		}*/
 
 		// saturday or sunday
 		if(is_weekend($date))
