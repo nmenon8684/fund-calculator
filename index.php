@@ -108,6 +108,7 @@
 				$funds[$symbol][] = [
 					'date' => $quote['Date'],
 					'price' => $quote['Close'], 
+					'shares' => 100 / $quote['Close'],
 				];
 			}
 		}
@@ -167,7 +168,7 @@
 					<?php foreach($fund_transactions as $transaction): ?>
 						<tr>
 							<td><?php echo $transaction['date']; ?></td>
-							<td><?php echo 100 / $transaction['price']; ?></td>
+							<td><?php echo $transaction['shares']; ?></td>
 							<td><?php echo $transaction['price']; ?></td>
 							<td>+$5.00</td>
 							<td>+5%</td>
