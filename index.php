@@ -153,24 +153,28 @@
 				<tr>
 					<th>Symbol/Date</th>
 					<th>Shares</th>
-					<th>Current Value</th>
+					<th>Price Per Share</th>
 					<th>Total Gain($)</th>
 					<th>Total Gain(%)</th>
 					<th>Current Value</th>
 				</tr>
 			</thead>
 			<tbody>
-				<tr class="active">
-					<td colspan="6">John</td>
-				</tr>
-				<tr>
-					<td>01-01-2015</td>
-					<td>100</td>
-					<td>$1.00</td>
-					<td>+$5.00</td>
-					<td>+5%</td>
-					<td>$105</td>
-				</tr>
+				<?php foreach($funds as $fund_name => $fund_transactions): ?>
+					<tr class="active">
+						<td colspan="6"><?php echo $fund_name; ?></td>
+					</tr>
+					<?php foreach($fund_transactions as $transaction): ?>
+						<tr>
+							<td><?php echo $transaction['date']; ?></td>
+							<td><?php echo 100 / $transaction['price']; ?></td>
+							<td><?php echo $transaction['price']; ?></td>
+							<td>+$5.00</td>
+							<td>+5%</td>
+							<td>$105</td>
+						</tr>
+					<?php endforeach; ?>		
+				<?php endforeach; ?>		
 			</tbody>
 		</table>
 	</div>
