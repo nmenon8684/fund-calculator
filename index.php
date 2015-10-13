@@ -18,6 +18,22 @@
 		return (is_weekend($holiday) ? $holiday->modify($modify_date)->format('Y-m-d') : $holiday->format('Y-m-d'));
     }
 
+    function gain_format($number, $type = 'dollar')
+    {
+    	// positive number
+    	if($number >= 0)
+    	{
+    		$number = ($type == 'percent') ? '+' . number_format($number, 2) . '%' : '+$' . number_format($number, 2);
+    	} 
+    	//negative number
+    	else
+    	{
+    		$number = ($type == 'percent') ? number_format($number, 2) . '%' : str_replace('-', '-$', number_format($number, 2));
+    	}
+
+    	return $number;
+    }
+
 	function is_market_closed($date)
 	{
 		$year = $date->format('Y');
@@ -52,15 +68,19 @@
 
 	$client = new \Scheb\YahooFinanceApi\ApiClient();
 
-	$symbol = 'FLGEX';
-	$start_date = new DateTime('2015-01-01');
+	$symbol = 'FPHAX';
+	$start_date = new DateTime('2015-09-01');
 	$end_date = new DateTime('NOW');
 
-	$data = $client->getHistoricalData($symbol, $start_date, $end_date);
+	$history_nav = $client->getHistoricalData($symbol, $start_date, $end_date);
 
-	print '<pre>';
-	//print_r($data);
-	print '</pre>';
+	$current_nav = $client->getQuotes($symbol);
+	$current_nav = $current_nav['query']['results']['quote']['LastTradePriceOnly'];
+
+	//print '<pre>';
+	//print_r($current_nav);
+	//print '</pre>';
+	//exit;
 
 	$interval = DateInterval::createFromDateString('first day of next month');
 	$period = new DatePeriod($start_date, $interval, $end_date, DatePeriod::EXCLUDE_START_DATE);
@@ -89,15 +109,15 @@
 	}
 
 	print '<pre>';
-	print_r($trans_date);
+	//print_r($trans_date);
 	print '</pre>';
 
 
 	$funds = [];
 
-	if(!empty($data['query']['results']['quote']))
+	if(!empty($history_nav['query']['results']['quote']))
 	{
-		foreach($data['query']['results']['quote'] as $quote)
+		foreach($history_nav['query']['results']['quote'] as $quote)
 		{
 			//print '<pre>';
 			//print_r($quote);
@@ -105,10 +125,22 @@
 			//exit;
 			if(in_array($quote['Date'], $trans_date))
 			{
+				$price_per_share = number_format($quote['Close'], 2);
+				$shares = round( 100 / $price_per_share, 3);
+				$current_value = number_format($shares * $current_nav, 2);
+				$investment_value = round($shares * $quote['Close']);
+				$total_gain_dollar = $current_value - $investment_value;
+				$total_gain_percent = ($total_gain_dollar / $investment_value) * 100;
+
 				$funds[$symbol][] = [
 					'date' => $quote['Date'],
-					'price' => $quote['Close'], 
-					'shares' => 100 / $quote['Close'],
+					'price' => $price_per_share, 
+					'shares' => $shares,
+					'current_value' => $current_value,
+					'investment_value' => $investment_value,
+					'total_gain_dollar' => gain_format($total_gain_dollar),
+					'total_gain_percent' => gain_format($total_gain_percent, 'percent'),
+					'gain_loss_class' => ($total_gain_dollar >= 0) ? 'text-success' : 'text-danger', 
 				];
 			}
 		}
@@ -135,7 +167,7 @@
 <meta name="author" content="">
 <link rel="icon" href="../../favicon.ico">
 
-<title>Grid Template for Bootstrap</title>
+<title>Fund Calculator</title>
 
 <!-- Bootstrap core CSS -->
 <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.min.css">
@@ -163,19 +195,30 @@
 			<tbody>
 				<?php foreach($funds as $fund_name => $fund_transactions): ?>
 					<tr class="active">
-						<td colspan="6"><?php echo $fund_name; ?></td>
+						<td><?php echo $fund_name; ?></td>
+						<td>XXX</td>
+						<td>XXX</td>
+						<td>XXX</td>
+						<td>XXX</td>
+						<td>XXX</td>
 					</tr>
 					<?php foreach($fund_transactions as $transaction): ?>
 						<tr>
 							<td><?php echo $transaction['date']; ?></td>
 							<td><?php echo $transaction['shares']; ?></td>
 							<td><?php echo $transaction['price']; ?></td>
-							<td>+$5.00</td>
-							<td>+5%</td>
-							<td>$105</td>
+							<td><span class="<?php echo $transaction['gain_loss_class']; ?>"><?php echo $transaction['total_gain_dollar']; ?></span></td>
+							<td><span class="<?php echo $transaction['gain_loss_class']; ?>"><?php echo $transaction['total_gain_percent']; ?></span></td>
+							<td><span class="<?php echo $transaction['gain_loss_class']; ?>">$<?php echo $transaction['current_value']; ?></span></td>
 						</tr>
-					<?php endforeach; ?>		
+					<?php endforeach; ?>
 				<?php endforeach; ?>		
+				<tr class="success">
+					<td colspan="3">TOTALS:</td>
+					<td>XXX</td>
+					<td>XXX</td>
+					<td>XXX</td>
+				</tr>		
 			</tbody>
 		</table>
 	</div>
