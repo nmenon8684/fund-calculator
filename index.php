@@ -68,117 +68,131 @@
 
 	$client = new \Scheb\YahooFinanceApi\ApiClient();
 
-	$symbol = 'FPHAX';
-	$start_date = new DateTime('2015-09-01');
-	$end_date = new DateTime('NOW');
-
-	$history_nav = $client->getHistoricalData($symbol, $start_date, $end_date);
-
-	$current_nav = $client->getQuotes($symbol);
-	$current_nav = $current_nav['query']['results']['quote']['LastTradePriceOnly'];
-
-	print '<pre>';
-	print_r($history_nav);
-	print '</pre>';
-	//exit;
-
-	$interval = DateInterval::createFromDateString('first day of next month');
-	$period = new DatePeriod($start_date, $interval, $end_date, DatePeriod::EXCLUDE_START_DATE);
-
-	$trans_date[] = is_market_closed($start_date);
-
-	$start_date_day = $start_date->format('d');	
-
-	if($start_date_day < 15)
-	{
-		$days_till_fifteenth =  15 - $start_date_day;
-
-		$fifteenth_day = $start_date->add(new DateInterval('P' . $days_till_fifteenth . 'D'));
-
-		$trans_date[] = is_market_closed($fifteenth_day);
-	}
-
-	foreach($period as $date)
-	{
-		$trans_date[] = is_market_closed($date);
-
-		$date->add(new DateInterval('P14D'));
-		//$date->setDate($date->format('Y'), $date->format('m'), 15);
-
-		$trans_date[] = is_market_closed($date);
-	}
-
-	print '<pre>';
-	//print_r($trans_date);
-	print '</pre>';
-
-
+	$mutual_funds = ['FPHAX','FRXIX'];
 	$funds = [];
-	$funds_trans = [];
 
-	if(!empty($history_nav['query']['results']['quote']))
+	foreach($mutual_funds as $mutual_fund)
 	{
-		$total_price = 0;
-		$total_shares = 0;
-		$total_current_value = 0;
-		$total_investment_value = 0;
-		$total_total_gain_dollar = 0;
-		$total_total_gain_percent = 0;
 
-		foreach($history_nav['query']['results']['quote'] as $quote)
+		$symbol = $mutual_fund;
+		$start_date = new DateTime('2015-01-01');
+		$end_date = new DateTime('NOW');
+
+		$history_nav = $client->getHistoricalData($symbol, $start_date, $end_date);
+
+		$current_nav = $client->getQuotes($symbol);
+		$current_nav = $current_nav['query']['results']['quote']['LastTradePriceOnly'];
+
+		//print '<pre>';
+		//print_r($history_nav);
+		//print '</pre>';
+		//exit;
+
+		$interval = DateInterval::createFromDateString('first day of next month');
+		$period = new DatePeriod($start_date, $interval, $end_date, DatePeriod::EXCLUDE_START_DATE);
+
+		$trans_date[] = is_market_closed($start_date);
+
+		$start_date_day = $start_date->format('d');	
+
+		if($start_date_day < 15)
 		{
-			//print '<pre>';
-			//print_r($quote);
-			//print '</pre>';
-			//exit;
-			if(in_array($quote['Date'], $trans_date))
-			{
-				$price_per_share = number_format($quote['Close'], 2);
-				$shares = round( 100 / $price_per_share, 3);
-				$current_value = number_format($shares * $current_nav, 2);
-				$investment_value = round($shares * $quote['Close']);
-				$total_gain_dollar = $current_value - $investment_value;
-				$total_gain_percent = ($total_gain_dollar / $investment_value) * 100;
+			$days_till_fifteenth =  15 - $start_date_day;
 
-				$funds_trans[] =  [
-					'date' => $quote['Date'],
-					'price' => $price_per_share, 
-					'shares' => $shares,
-					'current_value' => $current_value,
-					'investment_value' => $investment_value,
-					'total_gain_dollar' => gain_format($total_gain_dollar),
-					'total_gain_percent' => gain_format($total_gain_percent, 'percent'),
-					'gain_loss_class' => ($total_gain_dollar >= 0) ? 'text-success' : 'text-danger', 
-				];
-				
-				$total_price = ($total_price + $price_per_share) / count($funds_trans);
-				$total_shares = $total_shares + $shares;
-				$total_current_value = $total_current_value + $current_value;
-				$total_investment_value = $total_investment_value + $investment_value;
-				$total_total_gain_dollar = $total_total_gain_dollar + $total_gain_dollar;
-				$total_total_gain_percent = ($total_total_gain_dollar / $total_investment_value) * 100;
-			}
+			$fifteenth_day = $start_date->add(new DateInterval('P' . $days_till_fifteenth . 'D'));
+
+			$trans_date[] = is_market_closed($fifteenth_day);
 		}
 
-		$funds[] = [
-			'name' => $symbol,
-			'price' => $total_price, 
-			'shares' => $total_shares,
-			'current_value' => $total_current_value,
-			'investment_value' => $total_investment_value,
-			'total_gain_dollar' => gain_format($total_total_gain_dollar),
-			'total_gain_percent' => gain_format($total_total_gain_percent, 'percent'),
-			'gain_loss_class' => ($total_total_gain_dollar >= 0) ? 'text-success' : 'text-danger', 
-			'trans' => $funds_trans,
-		];
+		foreach($period as $date)
+		{
+			$trans_date[] = is_market_closed($date);
 
+			$date->add(new DateInterval('P14D'));
+			//$date->setDate($date->format('Y'), $date->format('m'), 15);
+
+			$trans_date[] = is_market_closed($date);
+		}
+
+		//print '<pre>';
+		//print_r($trans_date);
+		//print '</pre>';
+
+
+
+		if(!empty($history_nav['query']['results']['quote']))
+		{
+			$total_price = 0;
+			$total_shares = 0;
+			$total_current_value = 0;
+			$total_investment_value = 0;
+			$total_total_gain_dollar = 0;
+			$total_total_gain_percent = 0;
+			$funds_trans = [];
+
+			foreach($history_nav['query']['results']['quote'] as $quote)
+			{
+				//print '<pre>';
+				//print_r($quote);
+				//print '</pre>';
+				//exit;
+				if(in_array($quote['Date'], $trans_date))
+				{
+					$price_per_share = number_format($quote['Close'], 2);
+					$shares = round( 100 / $price_per_share, 3);
+					$current_value = number_format($shares * $current_nav, 2);
+					$investment_value = round($shares * $quote['Close']);
+					$total_gain_dollar = $current_value - $investment_value;
+					$total_gain_percent = ($total_gain_dollar / $investment_value) * 100;
+
+					$funds_trans[] =  [
+						'date' => $quote['Date'],
+						'price' => $price_per_share, 
+						'shares' => $shares,
+						'current_value' => $current_value,
+						'investment_value' => $investment_value,
+						'total_gain_dollar' => gain_format($total_gain_dollar),
+						'total_gain_percent' => gain_format($total_gain_percent, 'percent'),
+						'gain_loss_class' => ($total_gain_dollar >= 0) ? 'text-success' : 'text-danger', 
+					];
+					
+					$total_price = number_format(($total_price + $price_per_share) / count($funds_trans), 2);
+					$total_shares = $total_shares + $shares;
+					$total_current_value = $total_current_value + $current_value;
+					$total_investment_value = $total_investment_value + $investment_value;
+					$total_total_gain_dollar = $total_total_gain_dollar + $total_gain_dollar;
+					$total_total_gain_percent = ($total_total_gain_dollar / $total_investment_value) * 100;
+				}
+			}
+
+			$funds[] = [
+				'name' => $symbol,
+				'price' => $total_price, 
+				'shares' => $total_shares,
+				'current_value' => $total_current_value,
+				'investment_value' => $total_investment_value,
+				'total_gain_dollar' => gain_format($total_total_gain_dollar),
+				'total_gain_percent' => gain_format($total_total_gain_percent, 'percent'),
+				'gain_loss_class' => ($total_total_gain_dollar >= 0) ? 'text-success' : 'text-danger', 
+				'trans' => $funds_trans,
+			];
+		}
 	}
 
 
-	print '<pre>';
-	print_r($funds);
-	print '</pre>';
-exit;
+	$report = [
+		'current_value' => '',
+		'investment_value' => '',
+		'total_gain_dollar' => '',
+		'total_gain_percent' => '',
+		'gain_loss_class' => '',
+		'funds' => $funds,	 
+	];
+
+	//print '<pre>';
+	//print_r($report);
+	//print '</pre>';
+//exit;
 
 ?>
 
@@ -221,20 +235,20 @@ exit;
 				</tr>
 			</thead>
 			<tbody>
-				<?php foreach($funds as $fund_name => $fund_transactions): ?>
+				<?php foreach($report['funds'] as $funds): ?>
 					<tr class="active">
-						<td><?php echo $fund_name; ?></td>
-						<td>XXX</td>
-						<td>XXX</td>
-						<td>XXX</td>
-						<td>XXX</td>
-						<td>XXX</td>
+						<td><?php echo $funds['name']; ?></td>
+						<td><?php echo $funds['shares']; ?></td>
+						<td>$<?php echo $funds['price']; ?></td>
+						<td><span class="<?php echo $funds['gain_loss_class']; ?>"><?php echo $funds['total_gain_dollar']; ?></span></td>
+						<td><span class="<?php echo $funds['gain_loss_class']; ?>"><?php echo $funds['total_gain_percent']; ?></span></td>
+						<td><span class="<?php echo $funds['gain_loss_class']; ?>">$<?php echo $funds['current_value']; ?></span></td>
 					</tr>
-					<?php foreach($fund_transactions as $transaction): ?>
+					<?php foreach($funds['trans'] as $transaction): ?>
 						<tr>
 							<td><?php echo $transaction['date']; ?></td>
 							<td><?php echo $transaction['shares']; ?></td>
-							<td><?php echo $transaction['price']; ?></td>
+							<td>$<?php echo $transaction['price']; ?></td>
 							<td><span class="<?php echo $transaction['gain_loss_class']; ?>"><?php echo $transaction['total_gain_dollar']; ?></span></td>
 							<td><span class="<?php echo $transaction['gain_loss_class']; ?>"><?php echo $transaction['total_gain_percent']; ?></span></td>
 							<td><span class="<?php echo $transaction['gain_loss_class']; ?>">$<?php echo $transaction['current_value']; ?></span></td>
