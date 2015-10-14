@@ -77,9 +77,9 @@
 	$current_nav = $client->getQuotes($symbol);
 	$current_nav = $current_nav['query']['results']['quote']['LastTradePriceOnly'];
 
-	//print '<pre>';
-	//print_r($current_nav);
-	//print '</pre>';
+	print '<pre>';
+	print_r($history_nav);
+	print '</pre>';
 	//exit;
 
 	$interval = DateInterval::createFromDateString('first day of next month');
@@ -114,9 +114,17 @@
 
 
 	$funds = [];
+	$funds_trans = [];
 
 	if(!empty($history_nav['query']['results']['quote']))
 	{
+		$total_price = 0;
+		$total_shares = 0;
+		$total_current_value = 0;
+		$total_investment_value = 0;
+		$total_total_gain_dollar = 0;
+		$total_total_gain_percent = 0;
+
 		foreach($history_nav['query']['results']['quote'] as $quote)
 		{
 			//print '<pre>';
@@ -132,7 +140,7 @@
 				$total_gain_dollar = $current_value - $investment_value;
 				$total_gain_percent = ($total_gain_dollar / $investment_value) * 100;
 
-				$funds[$symbol][] = [
+				$funds_trans[] =  [
 					'date' => $quote['Date'],
 					'price' => $price_per_share, 
 					'shares' => $shares,
@@ -142,15 +150,35 @@
 					'total_gain_percent' => gain_format($total_gain_percent, 'percent'),
 					'gain_loss_class' => ($total_gain_dollar >= 0) ? 'text-success' : 'text-danger', 
 				];
+				
+				$total_price = ($total_price + $price_per_share) / count($funds_trans);
+				$total_shares = $total_shares + $shares;
+				$total_current_value = $total_current_value + $current_value;
+				$total_investment_value = $total_investment_value + $investment_value;
+				$total_total_gain_dollar = $total_total_gain_dollar + $total_gain_dollar;
+				$total_total_gain_percent = ($total_total_gain_dollar / $total_investment_value) * 100;
 			}
 		}
+
+		$funds[] = [
+			'name' => $symbol,
+			'price' => $total_price, 
+			'shares' => $total_shares,
+			'current_value' => $total_current_value,
+			'investment_value' => $total_investment_value,
+			'total_gain_dollar' => gain_format($total_total_gain_dollar),
+			'total_gain_percent' => gain_format($total_total_gain_percent, 'percent'),
+			'gain_loss_class' => ($total_total_gain_dollar >= 0) ? 'text-success' : 'text-danger', 
+			'trans' => $funds_trans,
+		];
+
 	}
 
 
 	print '<pre>';
 	print_r($funds);
 	print '</pre>';
-
+exit;
 
 ?>
 
