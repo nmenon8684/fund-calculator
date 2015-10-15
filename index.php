@@ -75,7 +75,7 @@
 	{
 
 		$symbol = $mutual_fund;
-		$start_date = new DateTime('2015-01-01');
+		$start_date = new DateTime('2015-09-01');
 		$end_date = new DateTime('NOW');
 
 		$history_nav = $client->getHistoricalData($symbol, $start_date, $end_date);
@@ -214,6 +214,9 @@
 <!-- Bootstrap core CSS -->
 <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.min.css">
 
+<script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
+<script type="text/javascript" src="js/clone-form-td.js"></script>
+
 <!-- HTML5 shim and Respond.js for IE8 support of HTML5 elements and media queries -->
 <!--[if lt IE 9]>
 	<script src="https://oss.maxcdn.com/html5shiv/3.7.2/html5shiv.min.js"></script>
@@ -223,6 +226,25 @@
 
 <body>
 	<div class="container">
+
+		<form action="#" method="post" id="sign-up_area" role="form" class="form-inline">
+			<div id="entry1" class="clonedInput">
+				<div class="form-group">
+					<label for="exampleInputEmail3">Email address</label>
+					<input type="email" class="form-control" id="exampleInputEmail3" placeholder="Email">
+				</div>
+				<div class="form-group">
+					<label for="exampleInputPassword3">Password</label>
+					<input type="password" class="form-control" id="exampleInputPassword3" placeholder="Password">
+				</div>
+			</div>	
+			<button type="button" id="btnAdd" name="btnAdd" class="btn btn-info">add section</button>
+			<button type="button" id="btnDel" name="btnDel" class="btn btn-danger">remove section above</button>
+		</form>
+
+
+
+
 		<table class="table table-bordered">
 			<thead>
 				<tr>
