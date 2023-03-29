@@ -22,7 +22,7 @@
 name: Recreate Branch From Master
 
 # CUSTOM MESSAGE TO SHOW ON THE WORKFLOW LISTING
-run-name: Recreating '${{ github.event.inputs.branch_name }}' branch from master branch
+run-name: Recreating ${{ github.event.inputs.branch_name }} branch from master branch
 
 on:
   workflow_dispatch:
