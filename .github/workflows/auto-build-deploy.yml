@@ -1,7 +1,6 @@
 name: Auto Build + Deploy
 
 on:
-  workflow_dispatch:
   push:
     # WHICH BRANCHES SHOULD EXECUTE 
     # THIS ACTION ON PUSH
