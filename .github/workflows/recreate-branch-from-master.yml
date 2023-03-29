@@ -27,7 +27,7 @@ run-name: Recreating branch ${{ github.event.inputs.version }} from master branc
 on:
   workflow_dispatch:
     inputs:
-      branch_name:
+      branch:
         description: 'Branch'
         required: true
         type: choice
