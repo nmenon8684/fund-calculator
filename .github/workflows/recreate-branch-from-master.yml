@@ -40,6 +40,8 @@ jobs:
     # COMMIT ANY MODIFIED FILES TO THE REPO (DONT PUSH UP)
     - name: Delete and recreate new version of the branch
       if: github.event.inputs.branch_name != 'master'
+      env:
+        GITHUB_TOKEN: ${{ secrets.CICD_USER_TOKEN }}
       run: |
         git config --global user.name "${{ secrets.CICD_USER_NAME }}"
         git config --global user.email "${{ secrets.CICD_USER_NAME }}@users.noreply.github.com"
