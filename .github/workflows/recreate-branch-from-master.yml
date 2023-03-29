@@ -1,0 +1,62 @@
+# Github Action: Recreate Branch From Master
+# 
+# This github action will be manually triggered to a 
+# build and deploy a tag to the acquia cloud environments.
+#
+# PREREQUSITES
+# 1. SETUP AUTH JSON FOR COMPOSER
+#   a. create a personal ssh auth key
+#      github > account settings > developer settings > generate new token > check all repo options 
+#
+#   b. copy and save the personal token value as a secret in github
+#      github > repo > settings > secrets > COMPOSER_AUTH_JSON > 
+#       {
+#          "http-basic": {
+#             "github.com": {
+#               "username": "<YOUR_GITHUB_USERNAME>",
+#               "password": "<YOUR_PERSONAL_ACCESS_TOKEN>"
+#             }
+#          }
+#       }
+
+name: Recreate Branch From Master
+
+# CUSTOM MESSAGE TO SHOW ON THE WORKFLOW LISTING
+run-name: Recreating branch ${{ github.event.inputs.version }} from master branch
+
+on:
+  workflow_dispatch:
+    inputs:
+      branch_name:
+        description: 'Branch'
+        required: true
+        type: choice
+        options:
+        - develop
+        - release
+
+jobs:
+  auto-recreate:
+    name: Recreate an existing branch from master branch
+
+    # MAX MINUTES BEFORE THIS WORKFLOW TIMESOUT
+    timeout-minutes: 15
+
+    # SET TECH STACK
+    runs-on: ubuntu-20.04
+
+    # STEPS TO EXECUTE
+    steps:
+    - uses: actions/checkout@v3
+
+    # COMMIT ANY MODIFIED FILES TO THE REPO (DONT PUSH UP)
+    - name: Delete and recreate new version of the branch
+      run: |
+        git config --global user.name "${{ secrets.CICD_USER_NAME }}"
+        git config --global user.email "${{ secrets.CICD_USER_NAME }}@users.noreply.github.com"
+        git push origin --delete ${{ github.event.inputs.branch_name }}
+        git branch -D ${{ github.event.inputs.branch_name }}
+        git checkout master
+        git pull
+        git branch ${{ github.event.inputs.branch_name }}
+        git push --set-upstream origin ${{ github.event.inputs.branch_name }}
