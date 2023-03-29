@@ -27,13 +27,15 @@ run-name: Recreating branch ${{ github.event.inputs.version }} from master branc
 on:
   workflow_dispatch:
     inputs:
-      branch:
-        description: 'Branch'
+      branch_name:
+        description: 'Which branch do you want to recreate?'
         required: true
         type: choice
         options:
         - develop
         - release
+        - idev
+        - qa
 
 jobs:
   auto-recreate:
@@ -48,6 +50,8 @@ jobs:
     # STEPS TO EXECUTE
     steps:
     - uses: actions/checkout@v3
+      with:
+          ref: ${{ github.event.inputs.branch_name }}
 
     # COMMIT ANY MODIFIED FILES TO THE REPO (DONT PUSH UP)
     - name: Delete and recreate new version of the branch
