@@ -1,0 +1,42 @@
+name: Auto Build + Deploy
+
+on:
+  workflow_dispatch:
+  push:
+    # WHICH BRANCHES SHOULD EXECUTE 
+    # THIS ACTION ON PUSH
+    branches:
+      # BRANCH WITH CODE COMPLETE AND READY TO TEST
+      - develop
+
+      # BRANCH WITH CODE INTENDED TO GO OUT IN THE NEXT RELEASE
+      - release
+
+# PREVENT THE SAME WORKFLOW / BRANCH COMBO FROM 
+# RUNNING MULTIPLE TIMES AT THE SAME TIME AND CANCEL 
+# THE PREVIOUS IN PROGRESS ONE SO THE NEW WORKFLOW 
+# CAN RUN INSTEAD
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  auto-deploy:
+    name: Auto build + deploy to acquia cloud
+
+    # MAX MINUTES BEFORE THIS WORKFLOW TIMESOUT
+    timeout-minutes: 15
+
+    # SET TECH STACK
+    runs-on: ubuntu-20.04
+
+    # STEPS TO EXECUTE
+    steps:
+    - uses: actions/checkout@v3
+
+    # PREPARE ENVIRONMENT VARIABLES
+    - run: |
+        echo "hello world"
+       
+
+    
