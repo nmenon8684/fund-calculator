@@ -1,23 +1,7 @@
 # Github Action: Recreate Branch From Master
 # 
-# This github action will be manually triggered to a 
-# build and deploy a tag to the acquia cloud environments.
-#
-# PREREQUSITES
-# 1. SETUP AUTH JSON FOR COMPOSER
-#   a. create a personal ssh auth key
-#      github > account settings > developer settings > generate new token > check all repo options 
-#
-#   b. copy and save the personal token value as a secret in github
-#      github > repo > settings > secrets > COMPOSER_AUTH_JSON > 
-#       {
-#          "http-basic": {
-#             "github.com": {
-#               "username": "<YOUR_GITHUB_USERNAME>",
-#               "password": "<YOUR_PERSONAL_ACCESS_TOKEN>"
-#             }
-#          }
-#       }
+# This github action will recreate an existing 
+# branch from the master branch.
 
 name: Recreate Branch From Master
 
@@ -55,6 +39,7 @@ jobs:
 
     # COMMIT ANY MODIFIED FILES TO THE REPO (DONT PUSH UP)
     - name: Delete and recreate new version of the branch
+      if: github.event.inputs.branch_name != 'master'
       run: |
         git config --global user.name "${{ secrets.CICD_USER_NAME }}"
         git config --global user.email "${{ secrets.CICD_USER_NAME }}@users.noreply.github.com"
